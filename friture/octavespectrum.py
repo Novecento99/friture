@@ -17,17 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
+import socket
 from PyQt5 import QtWidgets
 from numpy import log10, array, arange
 
 from friture.histplot import HistPlot
 from friture.octavefilters import Octave_Filters
-from friture.octavespectrum_settings import (OctaveSpectrum_Settings_Dialog,  # settings dialog
-                                             DEFAULT_SPEC_MIN,
-                                             DEFAULT_SPEC_MAX,
-                                             DEFAULT_WEIGHTING,
-                                             DEFAULT_BANDSPEROCTAVE,
-                                             DEFAULT_RESPONSE_TIME)
+from friture.octavespectrum_settings import (
+    OctaveSpectrum_Settings_Dialog,  # settings dialog
+    DEFAULT_SPEC_MIN,
+    DEFAULT_SPEC_MAX,
+    DEFAULT_WEIGHTING,
+    DEFAULT_BANDSPEROCTAVE,
+    DEFAULT_RESPONSE_TIME,
+)
 
 from friture.filter import NOCTAVE
 
@@ -70,14 +73,29 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         # initialize the settings dialog
         self.settings_dialog = OctaveSpectrum_Settings_Dialog(self)
 
+        if False:
+            self.tcp_ip = "127.0.0.1"  # Change to the desired IP address
+            self.tcp_port = 5005  # Change to the desired port
+            self.buffer_size = 1024  # Adjust buffer size as needed
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.connect((self.tcp_ip, self.tcp_port))
+
     # method
+    def send_spectrogram(self, data):
+        try:
+            # Send data in chunks of buffer_size
+            for i in range(0, len(data), self.buffer_size):
+                self.socket.sendall(data[i : i + self.buffer_size])
+        except Exception as e:
+            print(f"Failed to send data: {e}")
+
     def set_buffer(self, buffer):
         self.audiobuffer = buffer
 
     def compute_kernels(self, alphas, Ns):
         kernels = []
         for alpha, N in zip(alphas, Ns):
-            kernels += [(1. - alpha) ** arange(N - 1, -1, -1)]
+            kernels += [(1.0 - alpha) ** arange(N - 1, -1, -1)]
         return kernels
 
     def exp_smoothed_value(self, kernel, alpha, data, previous):
@@ -85,7 +103,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         if N == 0:
             return previous
         else:
-            value = alpha * (kernel[-N:] * data).sum() + previous * (1. - alpha) ** N
+            value = alpha * (kernel[-N:] * data).sum() + previous * (1.0 - alpha) ** N
             return value
 
     def handle_new_data(self, floatdata):
@@ -101,7 +119,12 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         y, decs_unused = self.filters.filter(floatdata)
 
         # compute the widget data
-        sp = [pyx_exp_smoothed_value(kernel, alpha, bankdata ** 2, old) for bankdata, kernel, alpha, old in zip(y, self.kernels, self.alphas, self.dispbuffers)]
+        sp = [
+            pyx_exp_smoothed_value(kernel, alpha, bankdata**2, old)
+            for bankdata, kernel, alpha, old in zip(
+                y, self.kernels, self.alphas, self.dispbuffers
+            )
+        ]
 
         # store result for next computation
         self.dispbuffers = sp
@@ -109,7 +132,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         sp = array(sp)
 
         if self.weighting == 0:
-            w = 0.
+            w = 0.0
         elif self.weighting == 1:
             w = self.filters.A
         elif self.weighting == 2:
@@ -119,7 +142,15 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         epsilon = 1e-30
         db_spectrogram = 10 * log10(sp + epsilon) + w
-        self.PlotZoneSpect.setdata(self.filters.flow, self.filters.fhigh, self.filters.f_nominal, db_spectrogram)
+        if False:
+            self.send_spectrogram(db_spectrogram.tobytes())
+
+        self.PlotZoneSpect.setdata(
+            self.filters.flow,
+            self.filters.fhigh,
+            self.filters.f_nominal,
+            db_spectrogram,
+        )
 
     # method
     def canvasUpdate(self):
@@ -154,7 +185,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         decs = self.filters.get_decs()
         ns = [self.response_time * SAMPLING_RATE / dec for dec in decs]
         Ns = [2 * 4096 / dec for dec in decs]
-        self.alphas = [1. - (1. - w) ** (1. / (n + 1)) for n in ns]
+        self.alphas = [1.0 - (1.0 - w) ** (1.0 / (n + 1)) for n in ns]
         # print(ns, Ns)
         self.kernels = self.compute_kernels(self.alphas, Ns)
 
