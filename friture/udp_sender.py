@@ -18,10 +18,11 @@ class UDPSender:
         self.socket.close()
 
 
-a = UDPSender("127.0.0.1", 5005)
-while True:
-    a.send_data(b"Hello, World!")
-    print("Message sent")
-    input("Press Enter to send another message or Ctrl+C to exit")
+if __name__ == "__main__":
+    a = UDPSender("127.0.0.1", 5005)
+    while True:
+        a.send_data(b"Hello, World!")
+        print("Message sent")
+        input("Press Enter to send another message or Ctrl+C to exit")
 
-a.close()
+    a.close()
