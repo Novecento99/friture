@@ -1,7 +1,5 @@
 import socket
-
-
-# example of a class that receveis data over UDP
+import numpy as np
 
 
 class UDPReceiver:
@@ -23,9 +21,12 @@ class UDPReceiver:
         self.socket.close()
 
 
-a = UDPReceiver("127.0.0.1", 5005)
-while True:
-    data = a.receive_data(1)
-    if data:
-        print(f"Received data: {data}")
-    input("Press Enter to receive another message or Ctrl+C to exit")
+if __name__ == "__main__":
+    a = UDPReceiver("127.0.0.1", 5005)
+    while True:
+        data = a.receive_data(1000)
+        array = np.frombuffer(data, dtype=np.float64)
+        if data:
+            print(f"Received data: {array}")
+            print(len(array))
+        input("Press Enter to receive another message or Ctrl+C to exit")
