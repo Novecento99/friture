@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
-import socket
 from PyQt5 import QtWidgets
 from numpy import log10, array, arange
 
@@ -31,6 +30,9 @@ from friture.octavespectrum_settings import (
     DEFAULT_BANDSPEROCTAVE,
     DEFAULT_RESPONSE_TIME,
 )
+import time
+
+from friture import udp_sender
 
 from friture.filter import NOCTAVE
 
@@ -45,6 +47,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
     def __init__(self, parent, engine):
         super().__init__(parent)
+        self.send_data = True
 
         self.audiobuffer = None
 
@@ -72,13 +75,10 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         # initialize the settings dialog
         self.settings_dialog = OctaveSpectrum_Settings_Dialog(self)
+        # self.last = time.time()
 
-        if False:
-            self.tcp_ip = "127.0.0.1"  # Change to the desired IP address
-            self.tcp_port = 5005  # Change to the desired port
-            self.buffer_size = 1024  # Adjust buffer size as needed
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.connect((self.tcp_ip, self.tcp_port))
+        if self.send_data:
+            self.sender = udp_sender.UDPSender("127.0.0.1", 5005)
 
     # method
     def send_spectrogram(self, data):
@@ -107,6 +107,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
             return value
 
     def handle_new_data(self, floatdata):
+
         # the behaviour of the filters functions is sometimes
         # unexpected when they are called on empty arrays
         if floatdata.shape[1] == 0:
@@ -142,8 +143,12 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         epsilon = 1e-30
         db_spectrogram = 10 * log10(sp + epsilon) + w
-        if False:
-            self.send_spectrogram(db_spectrogram.tobytes())
+
+        if self.send_data:
+            db_spectrogram_normalized = (db_spectrogram - self.spec_min) / (
+                self.spec_max - self.spec_min
+            )
+            self.sender.send_data(db_spectrogram_normalized.tobytes())
 
         self.PlotZoneSpect.setdata(
             self.filters.flow,
