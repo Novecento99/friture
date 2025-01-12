@@ -26,8 +26,15 @@ import logging
 import logging.handlers
 
 from PyQt5 import QtCore
+
 # specifically import from PyQt5.QtGui and QWidgets for startup time improvement :
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QApplication, QSplashScreen
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QHBoxLayout,
+    QVBoxLayout,
+    QApplication,
+    QSplashScreen,
+)
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtQml import QQmlEngine, qmlRegisterSingletonType, qmlRegisterType
 import platformdirs
@@ -72,7 +79,9 @@ SMOOTH_DISPLAY_TIMER_PERIOD_MS = 10
 SLOW_TIMER_PERIOD_MS = 1000
 
 
-class Friture(QMainWindow, ):
+class Friture(
+    QMainWindow,
+):
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -94,22 +103,24 @@ class Friture(QMainWindow, ):
 
         # Register the ScaleDivision type.  Its URI is 'ScaleDivision', it's v1.0 and the type
         # will be called 'Person' in QML.
-        qmlRegisterType(ScaleDivision, 'Friture', 1, 0, 'ScaleDivision')
-        qmlRegisterType(CoordinateTransform, 'Friture', 1, 0, 'CoordinateTransform')
-        qmlRegisterType(Scope_Data, 'Friture', 1, 0, 'ScopeData')
-        qmlRegisterType(Spectrum_Data, 'Friture', 1, 0, 'SpectrumData')
-        qmlRegisterType(LevelData, 'Friture', 1, 0, 'LevelData')
-        qmlRegisterType(LevelViewModel, 'Friture', 1, 0, 'LevelViewModel')
-        qmlRegisterType(Axis, 'Friture', 1, 0, 'Axis')
-        qmlRegisterType(Curve, 'Friture', 1, 0, 'Curve')
-        qmlRegisterType(FilledCurve, 'Friture', 1, 0, 'FilledCurve')
-        qmlRegisterType(PlotCurve, 'Friture', 1, 0, 'PlotCurve')
-        qmlRegisterType(PlotFilledCurve, 'Friture', 1, 0, 'PlotFilledCurve')
-        qmlRegisterType(SpectrogramItem, 'Friture', 1, 0, 'SpectrogramItem')
-        qmlRegisterType(SpectrogramImageData, 'Friture', 1, 0, 'SpectrogramImageData')
-        qmlRegisterType(ColorBar, 'Friture', 1, 0, 'ColorBar')
-        qmlRegisterType(Tick, 'Friture', 1, 0, 'Tick')
-        qmlRegisterSingletonType(Store, 'Friture', 1, 0, 'Store', lambda engine, script_engine: GetStore())
+        qmlRegisterType(ScaleDivision, "Friture", 1, 0, "ScaleDivision")
+        qmlRegisterType(CoordinateTransform, "Friture", 1, 0, "CoordinateTransform")
+        qmlRegisterType(Scope_Data, "Friture", 1, 0, "ScopeData")
+        qmlRegisterType(Spectrum_Data, "Friture", 1, 0, "SpectrumData")
+        qmlRegisterType(LevelData, "Friture", 1, 0, "LevelData")
+        qmlRegisterType(LevelViewModel, "Friture", 1, 0, "LevelViewModel")
+        qmlRegisterType(Axis, "Friture", 1, 0, "Axis")
+        qmlRegisterType(Curve, "Friture", 1, 0, "Curve")
+        qmlRegisterType(FilledCurve, "Friture", 1, 0, "FilledCurve")
+        qmlRegisterType(PlotCurve, "Friture", 1, 0, "PlotCurve")
+        qmlRegisterType(PlotFilledCurve, "Friture", 1, 0, "PlotFilledCurve")
+        qmlRegisterType(SpectrogramItem, "Friture", 1, 0, "SpectrogramItem")
+        qmlRegisterType(SpectrogramImageData, "Friture", 1, 0, "SpectrogramImageData")
+        qmlRegisterType(ColorBar, "Friture", 1, 0, "ColorBar")
+        qmlRegisterType(Tick, "Friture", 1, 0, "Tick")
+        qmlRegisterSingletonType(
+            Store, "Friture", 1, 0, "Store", lambda engine, script_engine: GetStore()
+        )
 
         # Setup the user interface
         self.ui = Ui_MainWindow()
@@ -127,7 +138,9 @@ class Friture(QMainWindow, ):
 
         # this timer is used to update widgets that just need to display as fast as they can
         self.display_timer = QtCore.QTimer()
-        self.display_timer.setInterval(SMOOTH_DISPLAY_TIMER_PERIOD_MS)  # constant timing
+        self.display_timer.setInterval(
+            SMOOTH_DISPLAY_TIMER_PERIOD_MS
+        )  # constant timing
 
         # slow timer
         self.slow_timer = QtCore.QTimer()
@@ -151,8 +164,7 @@ class Friture(QMainWindow, ):
         self.centralLayout.setContentsMargins(0, 0, 0, 0)
         self.vboxLayout.addLayout(self.centralLayout)
 
-        self.playback_widget = PlaybackControlWidget(
-            self, self.qml_engine, self.player)
+        self.playback_widget = PlaybackControlWidget(self, self.qml_engine, self.player)
         self.playback_widget.setVisible(self.settings_dialog.show_playback)
         self.vboxLayout.addWidget(self.playback_widget)
 
@@ -172,7 +184,9 @@ class Friture(QMainWindow, ):
 
         # settings changes
         self.settings_dialog.show_playback_changed.connect(self.show_playback_changed)
-        self.settings_dialog.history_length_changed.connect(self.player.set_history_seconds)
+        self.settings_dialog.history_length_changed.connect(
+            self.player.set_history_seconds
+        )
 
         # restore the settings and widgets geometries
         self.restoreAppState()
@@ -246,7 +260,10 @@ class Friture(QMainWindow, ):
         if settings.contains("CentralWidget/type"):
             settings.beginGroup("CentralWidget")
             centralWidgetKeys = settings.allKeys()
-            children = {key: settings.value(key, type=QtCore.QVariant) for key in centralWidgetKeys}
+            children = {
+                key: settings.value(key, type=QtCore.QVariant)
+                for key in centralWidgetKeys
+            }
             settings.endGroup()
 
             if not settings.contains("Docks/central/type"):
@@ -265,7 +282,7 @@ class Friture(QMainWindow, ):
         if settings.contains("Docks/dockNames"):
             docknames = settings.value("Docks/dockNames", [])
             if docknames == None:
-            	docknames = []
+                docknames = []
             newDockNames = []
             for dockname in docknames:
                 widgetType = settings.value("Docks/" + dockname + "/type", 0, type=int)
@@ -334,7 +351,7 @@ class StreamToLogger(object):
     def __init__(self, logger, log_level=logging.INFO):
         self.logger = logger
         self.log_level = log_level
-        self.linebuf = ''
+        self.linebuf = ""
 
     def write(self, buf):
         for line in buf.rstrip().splitlines():
@@ -361,7 +378,9 @@ def main():
     logFilePath = os.path.join(logDir, logFileName)
 
     # log to file
-    fileHandler = logging.handlers.RotatingFileHandler(logFilePath, maxBytes=100000, backupCount=5)
+    fileHandler = logging.handlers.RotatingFileHandler(
+        logFilePath, maxBytes=100000, backupCount=5
+    )
     fileHandler.setLevel(logging.DEBUG)
     fileHandler.setFormatter(formatter)
 
@@ -371,8 +390,8 @@ def main():
 
     if hasattr(sys, "frozen"):
         # redirect stdout and stderr to the logger if this is a pyinstaller bundle
-        sys.stdout = StreamToLogger(logging.getLogger('STDOUT'), logging.INFO)
-        sys.stderr = StreamToLogger(logging.getLogger('STDERR'), logging.ERROR)
+        sys.stdout = StreamToLogger(logging.getLogger("STDOUT"), logging.INFO)
+        sys.stderr = StreamToLogger(logging.getLogger("STDERR"), logging.ERROR)
     else:
         # log to console if this is not a pyinstaller bundle
         console = logging.StreamHandler()
@@ -385,7 +404,12 @@ def main():
 
     logger = logging.getLogger(__name__)
 
-    logger.info("Friture %s starting on %s (%s)", friture.__version__, platform.system(), sys.platform)
+    logger.info(
+        "Friture %s starting on %s (%s)",
+        friture.__version__,
+        platform.system(),
+        sys.platform,
+    )
 
     logger.info("QML path: %s", qml_url(""))
 
@@ -398,18 +422,23 @@ def main():
         # set the App ID for Windows 7 to properly display the icon in the
         # taskbar.
         import ctypes
-        myappid = 'Friture.Friture.Friture.current'  # arbitrary string
+
+        myappid = "Friture.Friture.Friture.current"  # arbitrary string
         try:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
         except:
-            logger.error("Could not set the app model ID. If the plaftorm is older than Windows 7, this is normal.")
+            logger.error(
+                "Could not set the app model ID. If the plaftorm is older than Windows 7, this is normal."
+            )
 
     app = QApplication(sys.argv)
 
     if platform.system() == "Darwin":
         logger.info("Applying Mac OS-specific setup")
         # help the packaged application find the Qt plugins (imageformats and platforms)
-        pluginsPath = os.path.normpath(os.path.join(QApplication.applicationDirPath(), os.path.pardir, 'PlugIns'))
+        pluginsPath = os.path.normpath(
+            os.path.join(QApplication.applicationDirPath(), os.path.pardir, "PlugIns")
+        )
         logger.info("Adding the following to the Library paths: %s", pluginsPath)
         QApplication.addLibraryPath(pluginsPath)
 
@@ -444,22 +473,22 @@ def main():
         # friture.cprof can be visualized with SnakeViz
         # http://jiffyclub.github.io/snakeviz/
         # snakeviz friture.cprof
-        cProfile.runctx('app.exec_()', globals(), locals(), filename="friture.cprof")
+        cProfile.runctx("app.exec_()", globals(), locals(), filename="friture.cprof")
 
         logger.info("Profile saved to '%s'", "friture.cprof")
 
         stats = pstats.Stats("friture.cprof")
-        stats.strip_dirs().sort_stats('time').print_stats(20)
-        stats.strip_dirs().sort_stats('cumulative').print_stats(20)
+        stats.strip_dirs().sort_stats("time").print_stats(20)
+        stats.strip_dirs().sort_stats("cumulative").print_stats(20)
     elif profile == "kcachegrind":
         import cProfile
         import lsprofcalltree
 
         p = cProfile.Profile()
-        p.run('app.exec_()')
+        p.run("app.exec_()")
 
         k = lsprofcalltree.KCacheGrind(p)
-        with open('cachegrind.out.00000', 'wb') as data:
+        with open("cachegrind.out.00000", "wb") as data:
             k.output(data)
     else:
         return_code = app.exec_()
