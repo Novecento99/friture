@@ -30,6 +30,7 @@ from friture.octavespectrum_settings import (
     DEFAULT_BANDSPEROCTAVE,
     DEFAULT_RESPONSE_TIME,
     DEFAULT_GAIN,
+    DEFAULT_CLASSE,
 )
 import time
 
@@ -65,6 +66,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.weighting = DEFAULT_WEIGHTING
         self.response_time = DEFAULT_RESPONSE_TIME
         self.gain = DEFAULT_GAIN
+        self.current_classe = DEFAULT_CLASSE
 
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
         self.PlotZoneSpect.setweighting(self.weighting)
@@ -176,6 +178,10 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
     def setmax(self, value):
         self.spec_max = value
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
+
+    def classeselected(self, value):
+        self.current_classe = value
+        self.sender.send_data(bytes(self.current_classe))
 
     def setgain(self, value):
         self.gain = value

@@ -30,6 +30,7 @@ DEFAULT_BANDSPEROCTAVE = 3
 DEFAULT_BANDSPEROCTAVE_INDEX = 1
 DEFAULT_RESPONSE_TIME = 1.0
 DEFAULT_RESPONSE_TIME_INDEX = 3
+DEFAULT_CLASSE = 10
 
 
 class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
@@ -78,20 +79,36 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
 
         self.comboBox_response_time = QtWidgets.QComboBox(self)
         self.comboBox_response_time.setObjectName("response_time")
+        self.comboBox_response_time.addItem("1 ms (Istantaneous)")
         self.comboBox_response_time.addItem("25 ms (Impulse)")
+        self.comboBox_response_time.addItem("70 ms (Very fast)")
         self.comboBox_response_time.addItem("125 ms (Fast)")
-        self.comboBox_response_time.addItem("300 ms")
+        self.comboBox_response_time.addItem("200 ms (Fast)")
+        self.comboBox_response_time.addItem("250 ms (Fast)")
+        self.comboBox_response_time.addItem("400 ms")
+        self.comboBox_response_time.addItem("600 ms")
         self.comboBox_response_time.addItem("1s (Slow)")
         self.comboBox_response_time.addItem("5s (Very Slow)")
+        self.comboBox_response_time.addItem("20s (Very Slow)")
         self.comboBox_response_time.setCurrentIndex(DEFAULT_RESPONSE_TIME_INDEX)
 
         self.gain = QtWidgets.QDoubleSpinBox(self)
         self.gain.setKeyboardTracking(False)
         self.gain.setMinimum(-200)
         self.gain.setMaximum(200)
+        self.gain.setSingleStep(0.1)  # Set the step size to 0.1
         self.gain.setProperty("value", DEFAULT_GAIN)
         self.gain.setObjectName("gain")
         self.gain.setSuffix("x")
+
+        self.current_classe = QtWidgets.QDoubleSpinBox(self)
+        self.current_classe.setKeyboardTracking(False)
+        self.current_classe.setMinimum(0)
+        self.current_classe.setMaximum(1000)
+        self.current_classe.setSingleStep(1)  # Set the step size to 0.1
+        self.current_classe.setProperty("value", DEFAULT_CLASSE)
+        self.current_classe.setObjectName("soggetto:")
+        self.current_classe.setSuffix("")
 
         self.formLayout.addRow("Bands per octave:", self.comboBox_bandsperoctave)
         self.formLayout.addRow("Max:", self.spinBox_specmax)
@@ -99,6 +116,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.formLayout.addRow("Gain:", self.gain)
         self.formLayout.addRow("Middle-ear weighting:", self.comboBox_weighting)
         self.formLayout.addRow("Response time:", self.comboBox_response_time)
+        self.formLayout.addRow("Soggetto:", self.current_classe)
 
         self.setLayout(self.formLayout)
 
@@ -107,6 +125,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         )
         self.spinBox_specmin.valueChanged.connect(self.parent().setmin)
         self.spinBox_specmax.valueChanged.connect(self.parent().setmax)
+        self.current_classe.valueChanged.connect(self.parent().classeselected)
         self.gain.valueChanged.connect(self.parent().setgain)
         self.comboBox_weighting.currentIndexChanged.connect(self.parent().setweighting)
         self.comboBox_response_time.currentIndexChanged.connect(
@@ -122,15 +141,27 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
     # slot
     def responsetimechanged(self, index):
         if index == 0:
-            response_time = 0.025
+            response_time = 0.001
         elif index == 1:
-            response_time = 0.125
+            response_time = 0.025
         elif index == 2:
-            response_time = 0.3
+            response_time = 0.070
         elif index == 3:
-            response_time = 1.0
+            response_time = 0.125
         elif index == 4:
-            response_time = 5.0
+            response_time = 0.200
+        elif index == 5:
+            response_time = 0.250
+        elif index == 6:
+            response_time = 0.300
+        elif index == 7:
+            response_time = 0.600
+        elif index == 8:
+            response_time = 1.000
+        elif index == 9:
+            response_time = 5.000
+        elif index == 10:
+            response_time = 20.000
         self.logger.info("responsetimechanged slot %d %d", index, response_time)
         self.parent().setresponsetime(response_time)
 
