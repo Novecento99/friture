@@ -104,8 +104,8 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.current_classe = QtWidgets.QDoubleSpinBox(self)
         self.current_classe.setKeyboardTracking(False)
         self.current_classe.setMinimum(0)
-        self.current_classe.setMaximum(1000)
-        self.current_classe.setSingleStep(1)  # Set the step size to 0.1
+        self.current_classe.setMaximum(999)
+        self.current_classe.setSingleStep(1)
         self.current_classe.setProperty("value", DEFAULT_CLASSE)
         self.current_classe.setObjectName("soggetto:")
         self.current_classe.setSuffix("")

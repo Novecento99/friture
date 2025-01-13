@@ -180,8 +180,11 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
 
     def classeselected(self, value):
+        import numpy as np
+
+        value = np.array(value)
         self.current_classe = value
-        self.sender.send_data(bytes(self.current_classe))
+        self.sender.send_data(self.current_classe.tobytes())
 
     def setgain(self, value):
         self.gain = value
