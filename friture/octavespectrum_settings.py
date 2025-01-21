@@ -153,7 +153,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         elif index == 5:
             response_time = 0.250
         elif index == 6:
-            response_time = 0.300
+            response_time = 0.400
         elif index == 7:
             response_time = 0.600
         elif index == 8:
