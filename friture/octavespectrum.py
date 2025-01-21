@@ -33,6 +33,7 @@ from friture.octavespectrum_settings import (
     DEFAULT_CLASSE,
 )
 import time
+import numpy as np
 
 from friture import udp_sender
 
@@ -180,8 +181,12 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
 
     def classeselected(self, value):
-        self.current_classe = value
-        self.sender.send_data(bytes(self.current_classe))
+
+        self.current_classe = int(value)
+
+        value_ndarray = np.array([self.current_classe], dtype=np.float64)
+
+        self.sender.send_data(value_ndarray.tobytes())
 
     def setgain(self, value):
         self.gain = value
@@ -223,3 +228,9 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
     def restoreState(self, settings):
         self.settings_dialog.restoreState(settings)
+
+
+if __name__ == "__main__":
+    import os
+
+    os.startfile("main.py")
