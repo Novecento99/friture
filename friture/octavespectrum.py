@@ -151,7 +151,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         if self.send_data:
             db_spectrogram_normalized = (db_spectrogram - self.spec_min) / (
-                self.spec_max - self.spec_min
+                0 - self.spec_min
             )
             # i want db_spectrogram to be minimum of 0
             db_spectrogram_normalized = db_spectrogram_normalized.clip(min=0)

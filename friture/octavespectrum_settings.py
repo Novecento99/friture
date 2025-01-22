@@ -23,7 +23,7 @@ from PyQt5 import QtWidgets
 
 # shared with octavespectrum.py
 DEFAULT_SPEC_MIN = -80
-DEFAULT_SPEC_MAX = -20
+DEFAULT_SPEC_MAX = 0
 DEFAULT_GAIN = 1.0
 DEFAULT_WEIGHTING = 0  # None
 DEFAULT_BANDSPEROCTAVE = 3
