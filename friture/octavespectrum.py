@@ -85,15 +85,6 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         if self.send_data:
             self.sender = udp_sender.UDPSender("127.0.0.1", 5005)
 
-    # method
-    def send_spectrogram(self, data):
-        try:
-            # Send data in chunks of buffer_size
-            for i in range(0, len(data), self.buffer_size):
-                self.socket.sendall(data[i : i + self.buffer_size])
-        except Exception as e:
-            print(f"Failed to send data: {e}")
-
     def set_buffer(self, buffer):
         self.audiobuffer = buffer
 
