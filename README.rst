@@ -1,6 +1,12 @@
 =======
-Friture
+Friture - **LiuMotion Fork**
 =======
+
+download here
+
+**This is a fork of the original Friture project, it's specifically tailored to work with the LiuMotion project.**
+
+**It sends the octave spectrum over UDP connection to the LiuMotion project.**
 
 .. image:: https://github.com/tlecomte/friture/workflows/build/badge.svg
     :target: https://github.com/tlecomte/friture/actions
