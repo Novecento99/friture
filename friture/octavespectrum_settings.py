@@ -111,7 +111,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.current_classe.setSuffix("")
 
         self.formLayout.addRow("Bands per octave:", self.comboBox_bandsperoctave)
-        # self.formLayout.addRow("Max:", self.spinBox_specmax)
+        self.formLayout.addRow("Max (only UI affected):", self.spinBox_specmax)
         self.formLayout.addRow("Minimum level:", self.spinBox_specmin)
         self.formLayout.addRow("Sensitivity:", self.gain)
         self.formLayout.addRow("Middle-ear weighting:", self.comboBox_weighting)
