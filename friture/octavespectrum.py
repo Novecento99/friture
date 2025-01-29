@@ -69,7 +69,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.gain = DEFAULT_GAIN
         self.current_classe = DEFAULT_CLASSE
 
-        self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
+        self.PlotZoneSpect.setspecrange(self.spec_min, 0)
         self.PlotZoneSpect.setweighting(self.weighting)
 
         self.filters = Octave_Filters(DEFAULT_BANDSPEROCTAVE)
