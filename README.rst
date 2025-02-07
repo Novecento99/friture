@@ -2,9 +2,13 @@
 Friture - **LiuMotion Fork**
 =======
 
-download here
-
 **This is a fork of the original Friture project, it's specifically tailored to work with the LiuMotion project.**
+
+download here https://github.com/Novecento99/friture/releases/tag/v0.51
+
+This is a fork of the original Friture project, it's specifically tailored to work with the LiuMotion project.
+
+
 
 **It sends the octave spectrum over UDP connection to the LiuMotion project.**
 
