@@ -30,7 +30,8 @@ from friture.octavespectrum_settings import (
     DEFAULT_BANDSPEROCTAVE,
     DEFAULT_RESPONSE_TIME,
     DEFAULT_GAIN,
-    DEFAULT_CLASSE,
+    DEFAULT_CLASS_1,
+    DEFAULT_CLASS_2,
 )
 import time
 import numpy as np
@@ -67,7 +68,11 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.weighting = DEFAULT_WEIGHTING
         self.response_time = DEFAULT_RESPONSE_TIME
         self.gain = DEFAULT_GAIN
-        self.current_classe = DEFAULT_CLASSE
+        self.class_1 = DEFAULT_CLASS_1
+        self.class_2 = DEFAULT_CLASS_2
+
+        self.ratio1 = 1
+        self.ratio2 = 0
 
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
         self.PlotZoneSpect.setweighting(self.weighting)
@@ -147,6 +152,10 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
             # i want db_spectrogram to be minimum of 0
             db_spectrogram_normalized = db_spectrogram_normalized.clip(min=0)
             db_spectrogram_normalized = db_spectrogram_normalized * self.gain
+            # put a zero in the first byte to indicate that this is a spectrogram
+            db_spectrogram_normalized = np.insert(
+                db_spectrogram_normalized, 0, 0, axis=0
+            )
             self.sender.send_data(db_spectrogram_normalized.tobytes())
 
         self.PlotZoneSpect.setdata(
@@ -171,13 +180,37 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.spec_max = value
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
 
-    def classeselected(self, value):
+    def set_class1(self, value):
+        self.class_1 = int(value)
+        self.send_class()
 
-        self.current_classe = int(value)
+    def set_class2(self, value):
+        self.class_2 = int(value)
+        self.send_class()
 
-        value_ndarray = np.array([self.current_classe], dtype=np.float64)
+    def send_class(self):
+        # make a 1000 elements array that has 1 in the current class and 0 in the others
+        value_ndarray = np.zeros(1000)
+        value_ndarray[self.class_1] = self.ratio1
+        value_ndarray[self.class_2] = self.ratio2
 
+        # put a 1 in the first byte to indicate that this is a class
+        value_ndarray = np.insert(value_ndarray, 0, 1, axis=0)
         self.sender.send_data(value_ndarray.tobytes())
+
+    def setratio1(self, value):
+        value = value / 100
+        print("setratio", value)
+
+        self.ratio1 = value
+        self.send_class()
+
+    def setratio2(self, value):
+        value = value / 100
+        print("setratio", value)
+
+        self.ratio2 = value
+        self.send_class()
 
     def setgain(self, value):
         self.gain = value

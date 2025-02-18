@@ -19,7 +19,7 @@
 
 import logging
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 # shared with octavespectrum.py
 DEFAULT_SPEC_MIN = -80
@@ -30,7 +30,8 @@ DEFAULT_BANDSPEROCTAVE = 3
 DEFAULT_BANDSPEROCTAVE_INDEX = 1
 DEFAULT_RESPONSE_TIME = 1.0
 DEFAULT_RESPONSE_TIME_INDEX = 3
-DEFAULT_CLASSE = 10
+DEFAULT_CLASS_1 = 10
+DEFAULT_CLASS_2 = 120
 
 
 class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
@@ -77,6 +78,22 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.comboBox_weighting.addItem("C")
         self.comboBox_weighting.setCurrentIndex(DEFAULT_WEIGHTING)
 
+        self.subject1_slider = QtWidgets.QSlider(self)
+        self.subject1_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.subject1_slider.setObjectName("subject_slider1")
+        self.subject1_slider.setMinimum(0)
+        self.subject1_slider.setMaximum(100)
+        self.subject1_slider.setValue(100)
+        self.subject1_slider.setSingleStep(1)
+
+        self.subject2_slider = QtWidgets.QSlider(self)
+        self.subject2_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.subject2_slider.setObjectName("subject_slider2")
+        self.subject2_slider.setMinimum(0)
+        self.subject2_slider.setMaximum(100)
+        self.subject2_slider.setValue(0)
+        self.subject2_slider.setSingleStep(1)
+
         self.comboBox_response_time = QtWidgets.QComboBox(self)
         self.comboBox_response_time.setObjectName("response_time")
         self.comboBox_response_time.addItem("1 ms (Istantaneous)")
@@ -101,14 +118,22 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.gain.setObjectName("gain")
         self.gain.setSuffix("x")
 
-        self.current_classe = QtWidgets.QDoubleSpinBox(self)
-        self.current_classe.setKeyboardTracking(False)
-        self.current_classe.setMinimum(0)
-        self.current_classe.setMaximum(999)
-        self.current_classe.setSingleStep(1)
-        self.current_classe.setProperty("value", DEFAULT_CLASSE)
-        self.current_classe.setObjectName("soggetto:")
-        self.current_classe.setSuffix("")
+        self.current_classe1 = QtWidgets.QComboBox(self)
+        self.current_classe1.setObjectName("soggetto1:")
+
+        self.current_classe2 = QtWidgets.QComboBox(self)
+        self.current_classe2.setObjectName("soggetto2:")
+
+        # read file with subjects
+        with open("biggan_subbjects.json") as f:
+            import json
+
+            subjects = json.load(f)
+        for subject in subjects:
+            self.current_classe1.addItem(subject + " " + str(subjects[subject]))
+            self.current_classe2.addItem(subject + " " + str(subjects[subject]))
+        self.current_classe1.setProperty("value", DEFAULT_CLASS_1)
+        self.current_classe2.setProperty("value", DEFAULT_CLASS_2)
 
         self.formLayout.addRow("Bands per octave:", self.comboBox_bandsperoctave)
         self.formLayout.addRow("Max (only UI affected):", self.spinBox_specmax)
@@ -116,7 +141,10 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.formLayout.addRow("Sensitivity:", self.gain)
         self.formLayout.addRow("Middle-ear weighting:", self.comboBox_weighting)
         self.formLayout.addRow("Response time:", self.comboBox_response_time)
-        self.formLayout.addRow("Subject (biggan only):", self.current_classe)
+        self.formLayout.addRow("Subject1 (biggan only):", self.current_classe1)
+        self.formLayout.addRow("GainSubject1", self.subject1_slider)
+        self.formLayout.addRow("Subject2 (biggan only):", self.current_classe2)
+        self.formLayout.addRow("GainSubject2", self.subject2_slider)
 
         self.setLayout(self.formLayout)
 
@@ -125,12 +153,15 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         )
         self.spinBox_specmin.valueChanged.connect(self.parent().setmin)
         self.spinBox_specmax.valueChanged.connect(self.parent().setmax)
-        self.current_classe.valueChanged.connect(self.parent().classeselected)
+        self.current_classe1.currentIndexChanged.connect(self.parent().set_class1)
+        self.current_classe2.currentIndexChanged.connect(self.parent().set_class2)
         self.gain.valueChanged.connect(self.parent().setgain)
         self.comboBox_weighting.currentIndexChanged.connect(self.parent().setweighting)
         self.comboBox_response_time.currentIndexChanged.connect(
             self.responsetimechanged
         )
+        self.subject1_slider.valueChanged.connect(self.parent().setratio1)
+        self.subject2_slider.valueChanged.connect(self.parent().setratio2)
 
     # slot
     def bandsperoctavechanged(self, index):
