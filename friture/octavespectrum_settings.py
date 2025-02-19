@@ -18,8 +18,10 @@
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-
+import json
 from PyQt5 import QtWidgets, QtCore
+import json
+from friture.subjects_data import subjects_data
 
 # shared with octavespectrum.py
 DEFAULT_SPEC_MIN = -80
@@ -124,11 +126,9 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.current_classe2 = QtWidgets.QComboBox(self)
         self.current_classe2.setObjectName("soggetto2:")
 
-        # read file with subjects
-        with open("biggan_subbjects.json") as f:
-            import json
+        # hardcoded subjects data
 
-            subjects = json.load(f)
+        subjects = json.loads(subjects_data)
         for subject in subjects:
             self.current_classe1.addItem(subject + " " + str(subjects[subject]))
             self.current_classe2.addItem(subject + " " + str(subjects[subject]))
