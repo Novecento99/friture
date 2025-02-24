@@ -111,14 +111,13 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.comboBox_response_time.addItem("20s (Very Slow)")
         self.comboBox_response_time.setCurrentIndex(DEFAULT_RESPONSE_TIME_INDEX)
 
-        self.gain = QtWidgets.QDoubleSpinBox(self)
-        self.gain.setKeyboardTracking(False)
-        self.gain.setMinimum(-200)
-        self.gain.setMaximum(200)
-        self.gain.setSingleStep(0.1)  # Set the step size to 0.1
-        self.gain.setProperty("value", DEFAULT_GAIN)
+        self.gain = QtWidgets.QSlider(self)
+        self.gain.setOrientation(QtCore.Qt.Horizontal)
         self.gain.setObjectName("gain")
-        self.gain.setSuffix("x")
+        self.gain.setMinimum(-1000)  # Adjusted for float representation
+        self.gain.setMaximum(1000)  # Adjusted for float representation
+        self.gain.setValue(int(DEFAULT_GAIN * 100))  # Convert float to int
+        self.gain.setSingleStep(1)
 
         self.current_classe1 = QtWidgets.QComboBox(self)
         self.current_classe1.setObjectName("soggetto1:")

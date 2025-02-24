@@ -214,6 +214,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
     def setgain(self, value):
         self.gain = value
+        print(f"Sensitivity changed to: {value / 100.0}")
 
     def setweighting(self, weighting):
         self.weighting = weighting
