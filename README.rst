@@ -4,7 +4,7 @@ Friture - **LiuMotion Fork**
 
 **This is a fork of the original Friture project, it's specifically tailored to work with the LiuMotion project.**
 
-download here https://github.com/Novecento99/friture/releases/tag/v0.51
+download here https://github.com/Novecento99/friture/releases
 
 This is a fork of the original Friture project, it's specifically tailored to work with the LiuMotion project.
 
