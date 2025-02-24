@@ -23,6 +23,7 @@ from PyQt5 import QtWidgets, QtCore
 import json
 from friture.subjects_data import subjects_data
 import numpy as np
+from friture.midi_handler import MidiHandler
 
 # shared with octavespectrum.py
 DEFAULT_SPEC_MIN = -80
@@ -156,6 +157,8 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.subject1_slider.valueChanged.connect(self.parent().setratio1)
         self.subject2_slider.valueChanged.connect(self.parent().setratio2)
 
+        self.midi_handler = MidiHandler(self)
+
     # slot
     def bandsperoctavechanged(self, index):
         bandsperoctave = 3 * 2 ** (index - 1) if index >= 1 else 1
@@ -194,3 +197,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
             "response_time", int(np.log10(DEFAULT_RESPONSE_TIME * 1000) * 100), type=int
         )
         self.comboBox_response_time.setValue(response_time_value)
+
+    def closeEvent(self, event):
+        self.midi_handler.stop()
+        super().closeEvent(event)
