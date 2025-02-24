@@ -22,6 +22,7 @@ import json
 from PyQt5 import QtWidgets, QtCore
 import json
 from friture.subjects_data import subjects_data
+import numpy as np
 
 # shared with octavespectrum.py
 DEFAULT_SPEC_MIN = -80
@@ -96,20 +97,15 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.subject2_slider.setValue(0)
         self.subject2_slider.setSingleStep(1)
 
-        self.comboBox_response_time = QtWidgets.QComboBox(self)
+        self.comboBox_response_time = QtWidgets.QSlider(self)
+        self.comboBox_response_time.setOrientation(QtCore.Qt.Horizontal)
         self.comboBox_response_time.setObjectName("response_time")
-        self.comboBox_response_time.addItem("1 ms (Istantaneous)")
-        self.comboBox_response_time.addItem("25 ms (Impulse)")
-        self.comboBox_response_time.addItem("70 ms (Very fast)")
-        self.comboBox_response_time.addItem("125 ms (Fast)")
-        self.comboBox_response_time.addItem("200 ms (Fast)")
-        self.comboBox_response_time.addItem("250 ms (Fast)")
-        self.comboBox_response_time.addItem("400 ms")
-        self.comboBox_response_time.addItem("600 ms")
-        self.comboBox_response_time.addItem("1s (Slow)")
-        self.comboBox_response_time.addItem("5s (Very Slow)")
-        self.comboBox_response_time.addItem("20s (Very Slow)")
-        self.comboBox_response_time.setCurrentIndex(DEFAULT_RESPONSE_TIME_INDEX)
+        self.comboBox_response_time.setMinimum(0)
+        self.comboBox_response_time.setMaximum(1000)
+        self.comboBox_response_time.setValue(
+            int(np.log10(DEFAULT_RESPONSE_TIME / 1000))
+        )
+        self.comboBox_response_time.setSingleStep(1)
 
         self.gain = QtWidgets.QSlider(self)
         self.gain.setOrientation(QtCore.Qt.Horizontal)
@@ -139,7 +135,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.formLayout.addRow("Minimum level:", self.spinBox_specmin)
         self.formLayout.addRow("Sensitivity:", self.gain)
         self.formLayout.addRow("Middle-ear weighting:", self.comboBox_weighting)
-        self.formLayout.addRow("Response time:", self.comboBox_response_time)
+        self.formLayout.addRow("Response time (ms):", self.comboBox_response_time)
         self.formLayout.addRow("Subject1 (biggan only):", self.current_classe1)
         self.formLayout.addRow("GainSubject1", self.subject1_slider)
         self.formLayout.addRow("Subject2 (biggan only):", self.current_classe2)
@@ -156,9 +152,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.current_classe2.currentIndexChanged.connect(self.parent().set_class2)
         self.gain.valueChanged.connect(self.parent().setgain)
         self.comboBox_weighting.currentIndexChanged.connect(self.parent().setweighting)
-        self.comboBox_response_time.currentIndexChanged.connect(
-            self.responsetimechanged
-        )
+        self.comboBox_response_time.valueChanged.connect(self.responsetimechanged)
         self.subject1_slider.valueChanged.connect(self.parent().setratio1)
         self.subject2_slider.valueChanged.connect(self.parent().setratio2)
 
@@ -169,30 +163,11 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.parent().setbandsperoctave(bandsperoctave)
 
     # slot
-    def responsetimechanged(self, index):
-        if index == 0:
-            response_time = 0.001
-        elif index == 1:
-            response_time = 0.025
-        elif index == 2:
-            response_time = 0.070
-        elif index == 3:
-            response_time = 0.125
-        elif index == 4:
-            response_time = 0.200
-        elif index == 5:
-            response_time = 0.250
-        elif index == 6:
-            response_time = 0.400
-        elif index == 7:
-            response_time = 0.600
-        elif index == 8:
-            response_time = 1.000
-        elif index == 9:
-            response_time = 5.000
-        elif index == 10:
-            response_time = 20.000
-        self.logger.info("responsetimechanged slot %d %d", index, response_time)
+    def responsetimechanged(self, value):
+        response_time = 0.005 + (value / 1000.0) * (
+            2.0 - 0.005
+        )  # Adjusted to range from 0.005 to 2.0
+        self.logger.info("responsetimechanged slot %d %f", value, response_time)
         self.parent().setresponsetime(response_time)
 
     # method
@@ -201,7 +176,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         settings.setValue("Min", self.spinBox_specmin.value())
         settings.setValue("Max", self.spinBox_specmax.value())
         settings.setValue("weighting", self.comboBox_weighting.currentIndex())
-        settings.setValue("response_time", self.comboBox_response_time.currentIndex())
+        settings.setValue("response_time", self.comboBox_response_time.value())
 
     # method
     def restoreState(self, settings):
@@ -215,7 +190,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.spinBox_specmax.setValue(colorMax)
         weighting = settings.value("weighting", DEFAULT_WEIGHTING, type=int)
         self.comboBox_weighting.setCurrentIndex(weighting)
-        response_time_index = settings.value(
-            "response_time", DEFAULT_RESPONSE_TIME_INDEX, type=int
+        response_time_value = settings.value(
+            "response_time", int(np.log10(DEFAULT_RESPONSE_TIME * 1000) * 100), type=int
         )
-        self.comboBox_response_time.setCurrentIndex(response_time_index)
+        self.comboBox_response_time.setValue(response_time_value)
