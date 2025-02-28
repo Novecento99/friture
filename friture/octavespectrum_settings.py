@@ -142,6 +142,12 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.formLayout.addRow("Subject2 (biggan only):", self.current_classe2)
         self.formLayout.addRow("GainSubject2", self.subject2_slider)
 
+        self.last_midi_input_label = QtWidgets.QLabel(self)
+        self.last_midi_input_label.setObjectName("last_midi_input_label")
+        self.last_midi_input_label.setText("Last MIDI Input: None")
+
+        self.formLayout.addRow("Last MIDI Input:", self.last_midi_input_label)
+
         self.setLayout(self.formLayout)
 
         self.comboBox_bandsperoctave.currentIndexChanged.connect(
@@ -158,6 +164,9 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.subject2_slider.valueChanged.connect(self.parent().setratio2)
 
         self.midi_handler = MidiHandler(self)
+
+    def update_last_midi_input(self, message):
+        self.last_midi_input_label.setText(f"Last MIDI Input: {message}")
 
     # slot
     def bandsperoctavechanged(self, index):

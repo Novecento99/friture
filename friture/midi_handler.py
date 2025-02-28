@@ -7,7 +7,6 @@ class MidiHandler:
     def __init__(self, octave_spectrum_settings_dialog):
         self.dialog = octave_spectrum_settings_dialog
         self.logger = logging.getLogger(__name__)
-        self.running = False
 
         try:
             available_ports = mido.get_input_names()
@@ -15,15 +14,10 @@ class MidiHandler:
                 raise OSError("no ports available")
 
             self.midi_input = mido.open_input(callback=self.midi_callback)
-            self.running = True
-            self.thread = Thread(target=self.listen)
-            self.thread.start()
+            # self.thread.start()
+            self.logger.info(f"MIDI input initialized: {available_ports}")
         except OSError as e:
             self.logger.warning(f"MIDI input initialization failed: {e}")
-
-    def listen(self):
-        while self.running:
-            pass
 
     def midi_callback(self, message):
         if message.type == "control_change":
@@ -42,8 +36,7 @@ class MidiHandler:
             elif control == 6:  # Example control number for subject2 slider
                 self.dialog.subject2_slider.setValue(value)
 
+        self.dialog.update_last_midi_input(message)
+
     def stop(self):
-        if self.running:
-            self.running = False
-            self.thread.join()
-            self.midi_input.close()
+        self.midi_input.close()
