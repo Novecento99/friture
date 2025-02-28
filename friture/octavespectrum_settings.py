@@ -24,6 +24,7 @@ import json
 from friture.subjects_data import subjects_data
 import numpy as np
 from friture.midi_handler import MidiHandler
+from friture.midi_mapping_dialog import MidiMappingDialog
 
 # shared with octavespectrum.py
 DEFAULT_SPEC_MIN = -80
@@ -158,6 +159,11 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
 
         self.formLayout.addRow("Last MIDI Input:", self.last_midi_input_label)
 
+        self.midi_mapping_button = QtWidgets.QPushButton("MIDI Mapping Settings", self)
+        self.midi_mapping_button.setObjectName("midi_mapping_button")
+
+        self.formLayout.addRow(self.midi_mapping_button)
+
         self.setLayout(self.formLayout)
 
         self.comboBox_bandsperoctave.currentIndexChanged.connect(
@@ -174,9 +180,17 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.subject2_slider.valueChanged.connect(self.parent().setratio2)
         self.midi_input_selector.currentIndexChanged.connect(self.change_midi_input)
         self.refresh_midi_inputs_button.clicked.connect(self.refresh_midi_inputs)
+        self.midi_mapping_button.clicked.connect(self.open_midi_mapping_dialog)
 
         self.midi_handler = MidiHandler(self)
         self.refresh_midi_inputs()
+
+    def open_midi_mapping_dialog(self):
+        dialog = MidiMappingDialog(self)
+        dialog.exec_()
+
+    def update_midi_mapping(self, control, midi_control_number):
+        self.midi_handler.update_mapping(control, midi_control_number)
 
     def update_last_midi_input(self, message):
         self.last_midi_input_label.setText(f"Last MIDI Input: {message}")
