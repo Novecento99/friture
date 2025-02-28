@@ -142,6 +142,16 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.formLayout.addRow("Subject2 (biggan only):", self.current_classe2)
         self.formLayout.addRow("GainSubject2", self.subject2_slider)
 
+        self.midi_input_selector = QtWidgets.QComboBox(self)
+        self.midi_input_selector.setObjectName("midi_input_selector")
+        self.refresh_midi_inputs_button = QtWidgets.QPushButton(
+            "Refresh MIDI Inputs", self
+        )
+        self.refresh_midi_inputs_button.setObjectName("refresh_midi_inputs_button")
+
+        self.formLayout.addRow("MIDI Input Device:", self.midi_input_selector)
+        self.formLayout.addRow(self.refresh_midi_inputs_button)
+
         self.last_midi_input_label = QtWidgets.QLabel(self)
         self.last_midi_input_label.setObjectName("last_midi_input_label")
         self.last_midi_input_label.setText("Last MIDI Input: None")
@@ -162,11 +172,23 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.comboBox_response_time.valueChanged.connect(self.responsetimechanged)
         self.subject1_slider.valueChanged.connect(self.parent().setratio1)
         self.subject2_slider.valueChanged.connect(self.parent().setratio2)
+        self.midi_input_selector.currentIndexChanged.connect(self.change_midi_input)
+        self.refresh_midi_inputs_button.clicked.connect(self.refresh_midi_inputs)
 
         self.midi_handler = MidiHandler(self)
+        self.refresh_midi_inputs()
 
     def update_last_midi_input(self, message):
         self.last_midi_input_label.setText(f"Last MIDI Input: {message}")
+
+    def refresh_midi_inputs(self):
+        self.midi_input_selector.clear()
+        available_ports = self.midi_handler.get_available_ports()
+        self.midi_input_selector.addItems(available_ports)
+
+    def change_midi_input(self, index):
+        selected_port = self.midi_input_selector.currentText()
+        self.midi_handler.change_midi_input(selected_port)
 
     # slot
     def bandsperoctavechanged(self, index):
