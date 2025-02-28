@@ -152,6 +152,8 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
             # i want db_spectrogram to be minimum of 0
             db_spectrogram_normalized = db_spectrogram_normalized.clip(min=0)
             db_spectrogram_normalized = db_spectrogram_normalized * self.gain
+            print(self.gain)
+            # print(self.spec_min)
             # put a zero in the first byte to indicate that this is a spectrogram
             db_spectrogram_normalized = np.insert(
                 db_spectrogram_normalized, 0, 0, axis=0
@@ -213,7 +215,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         self.send_class()
 
     def setgain(self, value):
-        self.gain = value
+        self.gain = value / 100
         print(f"Sensitivity changed to: {value / 100.0}")
 
     def setweighting(self, weighting):
