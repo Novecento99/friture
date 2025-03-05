@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from numpy import log10, array, arange
 
 from friture.histplot import HistPlot
@@ -33,6 +33,7 @@ from friture.octavespectrum_settings import (
     DEFAULT_CLASS_1,
     DEFAULT_CLASS_2,
 )
+import random
 import time
 import numpy as np
 
@@ -73,6 +74,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         self.ratio1 = 1
         self.ratio2 = 0
+        self.up = True
 
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
         self.PlotZoneSpect.setweighting(self.weighting)
@@ -89,6 +91,11 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         if self.send_data:
             self.sender = udp_sender.UDPSender("127.0.0.1", 5005)
+
+        self.auto_change_subject = False
+        self.auto_change_timer = QtCore.QTimer(self)
+        self.auto_change_timer.timeout.connect(self.update_subjects_smoothly)
+        self.auto_change_timer.start(25)  # Update every 25 milliseconds
 
     def set_buffer(self, buffer):
         self.audiobuffer = buffer
@@ -152,7 +159,7 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
             # i want db_spectrogram to be minimum of 0
             db_spectrogram_normalized = db_spectrogram_normalized.clip(min=0)
             db_spectrogram_normalized = db_spectrogram_normalized * self.gain
-            print(self.gain)
+            # print(self.gain)
             # print(self.spec_min)
             # put a zero in the first byte to indicate that this is a spectrogram
             db_spectrogram_normalized = np.insert(
@@ -255,6 +262,22 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
     def restoreState(self, settings):
         self.settings_dialog.restoreState(settings)
+
+    def update_subjects_smoothly(self):
+        if self.auto_change_subject:
+            now = time.time()
+            self.ratio1 = (np.sin(now) + 1) / 2  # Sine wave oscillation between 0 and 1
+            self.ratio2 = 1 - self.ratio1
+
+            if self.ratio1 < 0.01:
+                # change self.class1
+                self.class_1 = random.randint(0, 999)
+
+            if self.ratio2 < 0.01:
+                # change self.class2
+                self.class_2 = random.randint(0, 999)
+
+            self.send_class()
 
 
 if __name__ == "__main__":

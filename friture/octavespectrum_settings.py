@@ -164,6 +164,15 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
 
         self.formLayout.addRow(self.midi_mapping_button)
 
+        self.autoChangeSubjectCheckbox = QtWidgets.QCheckBox(
+            "Auto Change Subject", self
+        )
+        self.autoChangeSubjectCheckbox.setObjectName("autoChangeSubjectCheckbox")
+        self.autoChangeSubjectCheckbox.stateChanged.connect(
+            self.toggle_auto_change_subject
+        )
+        self.formLayout.addRow("Auto Change Subject:", self.autoChangeSubjectCheckbox)
+
         self.setLayout(self.formLayout)
 
         self.comboBox_bandsperoctave.currentIndexChanged.connect(
@@ -203,6 +212,10 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
     def change_midi_input(self, index):
         selected_port = self.midi_input_selector.currentText()
         self.midi_handler.change_midi_input(selected_port)
+
+    def toggle_auto_change_subject(self, state):
+        self.parent().auto_change_subject = state == QtCore.Qt.Checked
+        print(f"Auto Change Subject: {self.parent().auto_change_subject}")
 
     # slot
     def bandsperoctavechanged(self, index):
