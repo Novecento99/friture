@@ -132,6 +132,14 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.current_classe1.setProperty("value", DEFAULT_CLASS_1)
         self.current_classe2.setProperty("value", DEFAULT_CLASS_2)
 
+        self.divisor_slider = QtWidgets.QSlider(self)
+        self.divisor_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.divisor_slider.setObjectName("divisor_slider")
+        self.divisor_slider.setMinimum(1)
+        self.divisor_slider.setMaximum(1000)
+        self.divisor_slider.setValue(1)
+        self.divisor_slider.setSingleStep(1)
+
         self.formLayout.addRow("Bands per octave:", self.comboBox_bandsperoctave)
         self.formLayout.addRow("Max (only UI affected):", self.spinBox_specmax)
         self.formLayout.addRow("Minimum level:", self.spinBox_specmin)
@@ -142,6 +150,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.formLayout.addRow("GainSubject1", self.subject1_slider)
         self.formLayout.addRow("Subject2 (biggan only):", self.current_classe2)
         self.formLayout.addRow("GainSubject2", self.subject2_slider)
+        self.formLayout.addRow("Divisor:", self.divisor_slider)
 
         self.midi_input_selector = QtWidgets.QComboBox(self)
         self.midi_input_selector.setObjectName("midi_input_selector")
@@ -190,6 +199,7 @@ class OctaveSpectrum_Settings_Dialog(QtWidgets.QDialog):
         self.midi_input_selector.currentIndexChanged.connect(self.change_midi_input)
         self.refresh_midi_inputs_button.clicked.connect(self.refresh_midi_inputs)
         self.midi_mapping_button.clicked.connect(self.open_midi_mapping_dialog)
+        self.divisor_slider.valueChanged.connect(self.parent().set_divisor)
 
         self.midi_handler = MidiHandler(self)
         self.refresh_midi_inputs()

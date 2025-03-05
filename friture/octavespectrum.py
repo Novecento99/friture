@@ -74,7 +74,8 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
         self.ratio1 = 1
         self.ratio2 = 0
-        self.up = True
+        self.cum = 0
+        self.divisor = 1
 
         self.PlotZoneSpect.setspecrange(self.spec_min, self.spec_max)
         self.PlotZoneSpect.setweighting(self.weighting)
@@ -159,6 +160,11 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
             # i want db_spectrogram to be minimum of 0
             db_spectrogram_normalized = db_spectrogram_normalized.clip(min=0)
             db_spectrogram_normalized = db_spectrogram_normalized * self.gain
+            try:
+                self.last_db_spectrogram = self.current_db_spectrogram
+            except AttributeError:
+                self.current_db_spectrogram = db_spectrogram_normalized
+            self.current_db_spectrogram = db_spectrogram_normalized
             # print(self.gain)
             # print(self.spec_min)
             # put a zero in the first byte to indicate that this is a spectrogram
@@ -266,7 +272,19 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
     def update_subjects_smoothly(self):
         if self.auto_change_subject:
             now = time.time()
-            self.ratio1 = (np.sin(now) + 1) / 2  # Sine wave oscillation between 0 and 1
+            diff = self.current_db_spectrogram - self.last_db_spectrogram
+            # only positive values
+            diff = diff.clip(min=0)
+            # sum of diff
+            diff_sum = diff.sum()
+            self.cum += diff_sum
+
+            self.ratio1 = (
+                np.sin(self.cum / self.divisor) + 1
+            ) / 2  # Sine wave oscillation between 0 and 1
+            period = self.divisor
+            self.ratio1 = 2 * abs((self.cum / period) % 1 - 0.5)
+
             self.ratio2 = 1 - self.ratio1
 
             if self.ratio1 < 0.01:
@@ -278,6 +296,10 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
                 self.class_2 = random.randint(0, 999)
 
             self.send_class()
+
+    def set_divisor(self, value):
+        self.divisor = value
+        print(f"Divisor set to: {value}")
 
 
 if __name__ == "__main__":
