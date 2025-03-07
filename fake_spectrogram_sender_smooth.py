@@ -41,6 +41,8 @@ class FakeSpectrogramSender(QtCore.QObject):
         self.refresh_timer.start(self.refresh_spectro)
         self.change_spectrogram_timer.start(int(self.interval * 1000))
 
+        self.coeff = 0.8
+
         # Send initial subject coast shore
         self.send_initial_subject()
 
@@ -72,10 +74,20 @@ class FakeSpectrogramSender(QtCore.QObject):
         print("Changed subjects", time.time() - self.change_time)
         self.change_time = time.time()
 
+    def elastic_lerp(self, t):
+        # 0.5+0.5*cot(coeff*pi/2)*tan(coeff*pi*(t-0.5))
+        if self.coeff == 0:
+            return t
+        val = 0.5 + 0.5 * (1 / np.tan(self.coeff * np.pi / 2)) * np.tan(
+            self.coeff * np.pi * (t - 0.5)
+        )
+        print(val)
+        return val
+
     def refres_spectrogram(self):
 
         percentage = (time.time() - self.change_time) / (self.interval)
-        # print(percentage)
+        percentage = self.elastic_lerp(percentage)
         self.current_spectro = (
             self.last_spectrum * (1 - percentage) + self.target_spectrum * percentage
         )
