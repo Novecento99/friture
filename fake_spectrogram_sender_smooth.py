@@ -115,6 +115,10 @@ class FakeSpectrogramSender(QtCore.QObject):
         self.gain = gain / 100.0
         print(f"Gain set to: {self.gain}")
 
+    def set_coeff(self, coeff):
+        self.coeff = coeff / 100.0
+        print(f"Coeff set to: {self.coeff}")
+
     def start(self):
         self.refresh_timer.start(self.refresh_spectro)
         self.change_spectrogram_timer.start(int(self.interval * 1000))
@@ -175,6 +179,12 @@ class MainWindow(QtWidgets.QWidget):
         self.gain_slider.setValue(100)
         self.gain_slider.valueChanged.connect(self.sender.set_gain)
 
+        self.coeff_label = QtWidgets.QLabel("Coeff:")
+        self.coeff_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.coeff_slider.setRange(0, 100)  # Adjusted for 0.01 precision
+        self.coeff_slider.setValue(80)
+        self.coeff_slider.valueChanged.connect(self.sender.set_coeff)
+
         self.start_button = QtWidgets.QPushButton("Start")
         self.start_button.clicked.connect(self.sender.start)
 
@@ -191,6 +201,8 @@ class MainWindow(QtWidgets.QWidget):
         layout.addWidget(self.offset_spinbox)
         layout.addWidget(self.gain_label)
         layout.addWidget(self.gain_slider)
+        layout.addWidget(self.coeff_label)
+        layout.addWidget(self.coeff_slider)
         layout.addWidget(self.start_button)
         layout.addWidget(self.stop_button)
         layout.addWidget(self.measure_bpm_button)
