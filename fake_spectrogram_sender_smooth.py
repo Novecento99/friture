@@ -8,7 +8,7 @@ from PyQt5 import QtWidgets, QtCore
 # Configuration
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
-DEFAULT_BPM = 240
+DEFAULT_BPM = 100
 DEFAULT_OFFSET_MS = 0
 
 # Initialize UDP sender
@@ -29,7 +29,7 @@ class FakeSpectrogramSender(QtCore.QObject):
         self.change_spectrogram_timer.timeout.connect(self.change_subjects)
         self.click_times = []
 
-        self.gain = 1
+        self.gain = 1.0
 
         self.last_spectrum = np.random.rand(1000).astype(np.float64)
         self.current_spectro = self.last_spectrum
@@ -100,7 +100,7 @@ class FakeSpectrogramSender(QtCore.QObject):
         print(f"Offset set to: {self.offset_ms} ms")
 
     def set_gain(self, gain):
-        self.gain = gain
+        self.gain = gain / 100.0
         print(f"Gain set to: {self.gain}")
 
     def start(self):
@@ -125,6 +125,10 @@ class FakeSpectrogramSender(QtCore.QObject):
             avg_interval = np.mean(intervals)
             bpm = 60.0 / avg_interval
             self.set_bpm(bpm)
+            self.parent().bpm_spinbox.setValue(
+                int(bpm)
+            )  # Update the spinbox with the measured BPM
+
             # resets timer to sync
             self.change_spectrogram_timer.start(int(self.interval * 1000))
             print(f"Measured BPM: {bpm}")
@@ -143,6 +147,9 @@ class MainWindow(QtWidgets.QWidget):
         self.bpm_spinbox.setRange(1, 300)
         self.bpm_spinbox.setValue(DEFAULT_BPM)
         self.bpm_spinbox.valueChanged.connect(self.sender.set_bpm)
+        self.sender.parent = (
+            lambda: self
+        )  # Set the parent function to return this MainWindow instance
 
         self.offset_label = QtWidgets.QLabel("Offset (ms):")
         self.offset_spinbox = QtWidgets.QSpinBox()
@@ -152,8 +159,8 @@ class MainWindow(QtWidgets.QWidget):
 
         self.gain_label = QtWidgets.QLabel("Gain:")
         self.gain_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.gain_slider.setRange(0, 10)
-        self.gain_slider.setValue(1)
+        self.gain_slider.setRange(0, 1000)  # Adjusted for 0.01 precision
+        self.gain_slider.setValue(100)
         self.gain_slider.valueChanged.connect(self.sender.set_gain)
 
         self.start_button = QtWidgets.QPushButton("Start")
