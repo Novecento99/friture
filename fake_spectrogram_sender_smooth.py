@@ -20,59 +20,67 @@ class FakeSpectrogramSender(QtCore.QObject):
         super().__init__()
         self.bpm = DEFAULT_BPM
         self.offset_ms = DEFAULT_OFFSET_MS
-        self.refresh_spectro = 20
-        self.change_time = time.time()
-        self.interval = 0.5
+
+        self.refresh_liumotion = 20
+        self.counter = 1
+
+        self.noise_change_time = time.time()
+        self.noise_change_interval = 0.5
+
+        self.subjects_change_time = time.time()
+        self.subject_change_interval = self.noise_change_interval * 4
+
         self.refresh_timer = QtCore.QTimer()
-        self.refresh_timer.timeout.connect(self.refres_spectrogram)
+        self.refresh_timer.timeout.connect(self.update_liumotion)
         self.change_spectrogram_timer = QtCore.QTimer()
-        self.change_spectrogram_timer.timeout.connect(self.change_subjects)
+        self.change_spectrogram_timer.timeout.connect(self.new_noise_target)
+        self.change_subject_timer = QtCore.QTimer()
+        self.change_subject_timer.timeout.connect(self.nothing)
         self.click_times = []
 
         self.gain = 1.0
 
-        self.last_spectrum = np.random.rand(1000).astype(np.float64)
-        self.current_spectro = self.last_spectrum
-        self.target_spectrum = np.random.rand(1000).astype(np.float64)
-        self.last = time.time()
-        self.start()
-        self.change_subjects()
+        self.last_noise = np.random.rand(1000).astype(np.float64)
+        self.current_noise = self.last_noise
+        self.target_noise = np.random.rand(1000).astype(np.float64)
 
-        self.refresh_timer.start(self.refresh_spectro)
-        self.change_spectrogram_timer.start(int(self.interval * 1000))
+        self.last_subjects = np.zeros(1000, dtype=np.float64)
+        self.current_subjects = self.last_subjects
+        self.target_subjects = np.zeros(1000, dtype=np.float64)
+
+        self.start()
+        self.new_noise_target()
+        self.new_subject_target()
+
+        self.refresh_timer.start(self.refresh_liumotion)
+        self.change_spectrogram_timer.start(int(self.noise_change_interval * 1000))
+        self.change_subject_timer.start(int(self.subject_change_interval * 1000))
 
         self.coeff = 0.8
 
-        # Send initial subject coast shore
-        self.send_initial_subject()
+    def nothing(self):
+        pass
 
-    def send_initial_subject(self):
-        subject_1 = 980  # Example subject index for coast
-        subject_2 = 2  # Example subject index for shore
-        ratio1 = 1.0
-        ratio2 = 0.0
-        self.send_new_subject(subject_1, subject_2, ratio1, ratio2)
+    def new_subject_target(self):
+        self.last_subjects = self.current_subjects
+        value_ndarray = np.zeros(1000, dtype=np.float64)  # Initialize with zeros
+        x_subject = random.randint(0, 999)
+        value_ndarray[x_subject] = 1
 
-    def send_new_subject(self, subject_1, subject_2, ratio1, ratio2):
-        value_ndarray = np.zeros(1000, dtype=np.float64)
-        value_ndarray[subject_1] = ratio1
-        value_ndarray[subject_2] = ratio2
+        self.target_subjects = value_ndarray
 
-        # Put a 1 in the first byte to indicate that this is a class
-        value_ndarray = np.insert(value_ndarray, 0, 1.0)
+        print("Changed subjects", time.time() - self.subjects_change_time)
+        self.subjects_change_time = time.time()
 
-        # Convert to bytes
-        data = value_ndarray.tobytes()
+    def new_noise_target(self):
+        self.counter += 1
+        if self.counter % 4 == 0:
+            self.new_subject_target()
+        self.last_noise = self.current_noise
+        self.target_noise = np.random.rand(1000).astype(np.float64)
 
-        sock.sendto(data, (UDP_IP, UDP_PORT))
-        print(f"Sent subjects: {subject_1} and {subject_2}")
-
-    def change_subjects(self):
-        self.last_spectrum = self.current_spectro
-        self.target_spectrum = np.random.rand(1000).astype(np.float64)
-
-        print("Changed subjects", time.time() - self.change_time)
-        self.change_time = time.time()
+        print("Changed noise", time.time() - self.noise_change_time)
+        self.noise_change_time = time.time()
 
     def elastic_lerp(self, t):
         # 0.5+0.5*cot(coeff*pi/2)*tan(coeff*pi*(t-0.5))
@@ -81,19 +89,21 @@ class FakeSpectrogramSender(QtCore.QObject):
         val = 0.5 + 0.5 * (1 / np.tan(self.coeff * np.pi / 2)) * np.tan(
             self.coeff * np.pi * (t - 0.5)
         )
-        print(val)
         return val
 
-    def refres_spectrogram(self):
+    def update_liumotion(self):
 
-        percentage = (time.time() - self.change_time) / (self.interval)
-        percentage = self.elastic_lerp(percentage)
-        self.current_spectro = (
-            self.last_spectrum * (1 - percentage) + self.target_spectrum * percentage
+        percentage_noise = (time.time() - self.noise_change_time) / (
+            self.noise_change_interval
+        )
+        percentage_noise = self.elastic_lerp(percentage_noise)
+        self.current_noise = (
+            self.last_noise * (1 - percentage_noise)
+            + self.target_noise * percentage_noise
         )
         # Put a 0 in the first byte to indicate that this is a spectrogram
 
-        data = self.current_spectro * self.gain
+        data = self.current_noise * self.gain
         data = np.insert(data, 0, 0.0)
 
         # Convert to bytes
@@ -101,10 +111,29 @@ class FakeSpectrogramSender(QtCore.QObject):
 
         sock.sendto(data, (UDP_IP, UDP_PORT))
 
+        percentage_subjects = (time.time() - self.subjects_change_time) / (
+            self.subject_change_interval
+        )
+        # percentage_subjects = self.elastic_lerp(percentage_subjects)
+        self.current_subjects = (
+            self.last_subjects * (1 - percentage_subjects)
+            + self.target_subjects * percentage_subjects
+        )
+        data = self.current_subjects
+        # Put a 1 in the first byte to indicate that this is a subject
+        data = np.insert(data, 0, 1.0)
+        # data has to be float64
+        data = data.astype(np.float64)
+        # Convert to bytes
+        data = data.tobytes()
+        sock.sendto(data, (UDP_IP, UDP_PORT))
+
     def set_bpm(self, bpm):
         self.bpm = bpm
-        self.interval = 60.0 / self.bpm
-        self.change_spectrogram_timer.setInterval(int(self.interval * 1000))
+        self.noise_change_interval = 60.0 / self.bpm
+        self.change_spectrogram_timer.setInterval(
+            int(self.noise_change_interval * 1000)
+        )
         print(f"BPM set to: {self.bpm}")
 
     def set_offset(self, offset_ms):
@@ -120,13 +149,20 @@ class FakeSpectrogramSender(QtCore.QObject):
         print(f"Coeff set to: {self.coeff}")
 
     def start(self):
-        self.refresh_timer.start(self.refresh_spectro)
-        self.change_spectrogram_timer.start(int(self.interval * 1000))
+        print("refresh_timer started")
+        self.refresh_timer.start(self.refresh_liumotion)
+        print("change_spectrogram_timer started")
+        self.change_spectrogram_timer.start(int(self.noise_change_interval * 1000))
+        print("change_subject_timer started")
+        self.change_subject_timer.start(int(self.subject_change_interval * 1000))
         print("Started")
 
     def sync(self):
-        self.change_subjects()
-        self.change_spectrogram_timer.start(int(self.interval * 1000))
+        self.new_noise_target()
+        self.new_subject_target()
+        self.change_subject_timer.start(int(self.subject_change_interval * 1000))
+        self.change_spectrogram_timer.start(int(self.noise_change_interval * 1000))
+
         print("Synced")
 
     def stop(self):
@@ -146,7 +182,8 @@ class FakeSpectrogramSender(QtCore.QObject):
             )  # Update the spinbox with the measured BPM
 
             # resets timer to sync
-            self.change_spectrogram_timer.start(int(self.interval * 1000))
+            self.change_spectrogram_timer.start(int(self.noise_change_interval * 1000))
+            self.change_subject_timer.start(int(self.subject_change_interval * 1000))
             print(f"Measured BPM: {bpm}")
         if len(self.click_times) > 4:
             self.click_times.pop(0)
